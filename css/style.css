@@ -266,7 +266,7 @@ input.cancel:hover {
 
 .widget ol,
 .widget ul { margin: 0; }
-.widget li { background: #DDD; list-style: none; margin: 0 0 1em 3em; padding-left: 1em; }
+.widget li { background: #DDD; list-style: none; margin: 0 0 1em; padding-left: 1em; }
 .widget li:hover { background: #EEE; }
 
 /* Tracker-specific */

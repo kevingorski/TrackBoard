@@ -195,12 +195,12 @@ var trackers = [
 		{ zipCode: "80301" },
 		function(data) { return 'select * from weather.forecast where location=' + data.zipCode; },
 		'<h3>Current weather in ${channel.location.city}, ${channel.location.region}</h3>' +
-		'<p><strong>${channel.item.condition.temp}&deg; ${channel.units.temperature}</strong> at ${channel.lastBuildDate}</p>'),
+		'<ul><li><strong>${channel.item.condition.temp}&deg; ${channel.units.temperature}</strong> at ${channel.lastBuildDate}</li></ul>'),
 
 	new YqlTracker(
 		"Forecast",
 		'<div><label>Zip Code:</label><input name="zipCode" type="text" value="${zipCode}" /></div>',
 		{ zipCode: "80301" },
 		function(data) { return 'select * from weather.forecast where location=' + data.zipCode; },
-		'<h3>Forecast for ${channel.location.city}, ${channel.location.region}</h3>{{each channel.item.forecast}}<h3>${day}: ${high} / ${low}</h3>${text}{{/each}}<p><a href="${channel.item.link}">Full Forecast</a></p>')
+		'<h3>Forecast for ${channel.location.city}, ${channel.location.region}</h3><ul>{{each channel.item.forecast}}<li><h4>${day}: ${high}&deg; ${channel.units.temperature} / ${low}&deg; ${channel.units.temperature}</h4>${text}</li>{{/each}}</ul>')
 ];
