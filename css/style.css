@@ -119,6 +119,12 @@ input.cancel {
 	);
 }
 
+.no-cssgradients input.addTracker, 
+.no-cssgradients input.saveTracker, 
+.no-cssgradients input.cancel {
+	background-image: url(../images/button_background.png);
+}
+
 input.addTracker:hover, 
 input.saveTracker:hover, 
 input.cancel:hover { 
@@ -197,6 +203,10 @@ input.cancel:hover {
 	    rgb(200,200,200) 60%,
 	    rgb(190,190,190) 80%
 	);
+}
+
+.no-cssgradients #trackerHandle input {
+	background-image: url(../images/drawer_button_background.png);
 }
 
 #trackerHandle input:hover { 
