@@ -36,3 +36,4 @@ Many features have been prioritized to maximize the opportunity to combine progr
 * Twitter link highlighting from [twitter.js](http://code.google.com/p/twitterjs/)
 * Cookie reading/writing code from [quirksmode](quirksmode.org/js/cookies.html)
 * [CSS Sticky Footer](http://www.cssstickyfooter.com/)
+* [jQuery Spinner](http://github.com/jogep/jquery.ui.spinner) for a numeric textbox fallback

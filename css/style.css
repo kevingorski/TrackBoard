@@ -76,11 +76,9 @@ input[type=number] {
 .Loading { padding: 1em; }
 
 #configuration { width: 400px; }
-
-.editor { overflow: auto; }
+#results { clear: both; }
 
 .addTracker, 
-#trackers input, 
 .editor input 
 { border: solid thin black; border-radius: .5em; -moz-border-radius: .5em; }
 
@@ -96,7 +94,7 @@ input[type=number] {
 	margin-bottom: .5em;
 }
 
-.editor .buttons { float: left; margin-left: 6em; }
+.editor .buttons { float: left; margin-left: 6em; clear: right; }
 
 input.addTracker, 
 input.saveTracker, 
@@ -229,6 +227,7 @@ input.cancel:hover {
 
 /* Board & Widgets */
 #board { clear: both; }
+#board .editor { overflow: auto; }
 
 .widget {
 	border: thin solid black; 
@@ -277,3 +276,14 @@ input.cancel:hover {
 /* Modernizr styles */
 html.localstorage .no-localstorage { display: none; }
 html.no-localstorage .localstorage { display: none; }
+
+.editor .ui-spinner-input {
+	border-bottom-right-radius: 0;
+	border-top-right-radius: 0;
+	-moz-border-radius-bottomright: 0;
+	-moz-border-radius-topright: 0;
+}
+
+.ui-spinner-input,
+.ui-spinner-buttons { display: inline-block; vertical-align: top; }
+.ui-spinner-buttons .ui-spinner-button { overflow: hidden; margin: 0; }

@@ -139,12 +139,12 @@ var board = (function() {
 
 		createWidget : function(tracker, queryData) {
 			queryData = queryData || collectConfigurationData();
-
+			
 			loadWidget(tracker, queryData, '#board')
-				.data({ 
+				.data({
 					'tracker': tracker, 
 					'data': queryData })
-				.prepend('toolbarTemplate', {});
+				.prepend('toolbarTemplate', {});		
 
 			board.save();
 		},
@@ -252,6 +252,8 @@ $('.edit').live('click', function(event) {
 	widget.prepend(
 		'<div class="editor">' + tracker.configurationTemplate + '{{include "editButtons"}}</div>', 
 		allData.data);
+		
+	enhanceNumericTextboxes(widget);
 });
 
 $('#trackers ul li').live('click', function(event) {
@@ -261,6 +263,8 @@ $('#trackers ul li').live('click', function(event) {
 	
 	$('#trackers .editor')
 		.html($.render(tracker.configurationTemplate + '{{include "configurationButtons"}}', tracker.defaultData));
+
+	enhanceNumericTextboxes('#trackers');
 	
 	$('#previewMenu').click(function() {
 		board.displayPreview(tracker);
@@ -274,12 +278,26 @@ $('#trackers ul li').live('click', function(event) {
 });
 
 
+var enhanceNumericTextboxes = function(context) {
+	// Modernizr cares if programmatic assignement of value rejects invalid data; I don't
+	if(!(Modernizr.inputtypes.number || $.browser.webkit)) {
+		var numberInputs = $(context).find('.editor input[type=number]');
+
+		numberInputs.spinner({ 
+			min:numberInputs.attr('min'), 
+			max:numberInputs.attr('max'), 
+			showOn:'always'
+		});
+	}
+};
+
+
 //		DOM INITIALIZATION
 
 $(function() {
 	$(trackers).each(function() {
 		$('#trackers ul').append('<li><a href="#">' + this.title + '</a></li>');
 	});
-			
+				
 	board.load();
 });
