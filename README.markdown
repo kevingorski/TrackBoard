@@ -29,7 +29,7 @@ Many features have been prioritized to maximize the opportunity to combine progr
 * [jQuery 1.4.3](http://github.com/jquery/jquery)
 * [Modernizr 1.5](http://github.com/Modernizr/Modernizr)
 * [HTML5 Boilerplate](http://github.com/paulirish/html5-boilerplate)
-* [appendto's jQuery templates branch](http://github.com/appendto/jquery-tmpl)
+* [appendto's jQuery templates fork](http://github.com/appendto/jquery-tmpl)
 * [YQL](http://developer.yahoo.com/yql/) for some JSONP-versions of RSS feeds, etc.
 * [JSON2](http://www.json.org/js.html) for backwards compatible JSON-stringify
 * [John Resig's JavaScript Pretty Date](http://ejohn.org/blog/javascript-pretty-date/)
