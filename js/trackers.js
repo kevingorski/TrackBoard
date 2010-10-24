@@ -190,17 +190,23 @@ var trackers = [
 		}),
 			
 	new YqlTracker(
-		"Current Weather",
-		'<div><label>Zip Code:</label><input name="zipCode" type="text" value="${zipCode}" /></div>',
-		{ zipCode: "80301" },
+		"Weather",
+		'<div><label>Zip Code:</label><input name="zipCode" type="text" value="${zipCode}" /></div>' +
+			'<div><label>Current:</label><input name="currentConditions" type="checkbox" checked="${currentConditions}" /></div>' +
+			'<div><label>Forecast:</label><input name="forecast" type="checkbox" checked="${forecast}" /></div>',
+		{ zipCode: "80301", currentConditions: true, forecast: true },
 		function(data) { return 'select * from weather.forecast where location=' + data.zipCode; },
-		'<h3>Current weather in ${channel.location.city}, ${channel.location.region}</h3>' +
-		'<ul><li><strong>${channel.item.condition.temp}&deg; ${channel.units.temperature}</strong> at ${channel.lastBuildDate}</li></ul>'),
-
-	new YqlTracker(
-		"Forecast",
-		'<div><label>Zip Code:</label><input name="zipCode" type="text" value="${zipCode}" /></div>',
-		{ zipCode: "80301" },
-		function(data) { return 'select * from weather.forecast where location=' + data.zipCode; },
-		'<h3>Forecast for ${channel.location.city}, ${channel.location.region}</h3><ul>{{each channel.item.forecast}}<li><h4>${day}: ${high}&deg; ${channel.units.temperature} / ${low}&deg; ${channel.units.temperature}</h4>${text}</li>{{/each}}</ul>')
+		'<h3>Weather in ${channel.location.city}, ${channel.location.region}</h3>' +
+			
+			'{{if currentConditions}}<h4>Current Conditions</h4>' +
+				'<ol><li><strong>${channel.item.condition.temp}&deg; ${channel.units.temperature}</strong>' +
+				'{{if channel.item.condition.temp != channel.wind.chill}} ${channel.wind.chill}&deg; ${channel.units.temperature} wind chill{{/if}}</li>' +
+				'<li>${channel.wind.speed} ${channel.units.speed} wind, ${channel.atmosphere.humidity}% humidity</li>' +
+				'</ol>{{/if}}' +
+		
+			'{{if forecast}}<h4>Forecast</h4>' +
+				'<ol>{{each channel.item.forecast}}' +
+					'<li><h4>${day}: ${high}&deg; ${channel.units.temperature} / ${low}&deg; ${channel.units.temperature}</h4>${text}</li>' +
+				'{{/each}}</ol>{{/if}}'
+	)
 ];

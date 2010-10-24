@@ -67,6 +67,10 @@ input[type=url]
 	);
 }
 
+input[type=checkbox] {
+	height: 2em; padding: .5em;
+}
+
 input[type=number] {
 	width: 5em;
 }
@@ -91,6 +95,7 @@ input[type=number] {
 }
 
 .editor div {
+	clear: left;
 	margin-bottom: .5em;
 }
 

@@ -16,7 +16,10 @@ var board = (function() {
 		var updatedData = {};
 		var selector = '.editor input[type!=button]';
 		var gatherData = function() {
-			updatedData[this.name] = $(this).val();
+			var item = $(this);
+			updatedData[this.name] = item.is(':checkbox') 
+				? item.attr('checked')
+				: item.val();
 		};
 
 		if(widget) {
@@ -144,7 +147,7 @@ var board = (function() {
 				.data({
 					'tracker': tracker, 
 					'data': queryData })
-				.prepend('toolbarTemplate', {});		
+				.prepend('toolbarTemplate', {});
 
 			board.save();
 		},
