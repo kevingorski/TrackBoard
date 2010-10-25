@@ -263,6 +263,20 @@ input.cancel:hover {
 .toolbar a { text-decoration: none; }
 
 .widget:hover { background-color: #FFF; }
+.csstransforms .widget:hover {
+	transition: all 0.5s;
+	-webkit-transition: all 0.5s;
+	-moz-transition: all 0.5s;
+	-o-transition: all 0.5s;
+	
+	transform:translate(-5px, -5px);
+	-webkit-transform:translate(-5px, -5px);
+	
+	box-shadow: 5px 5px 5px #555;
+	-webkit-box-shadow: 5px 5px 5px #555;
+	-moz-box-shadow: 5px 5px 5px #555;
+}
+
 #board .widget:hover .toolbar { opacity: 1; visibility: visible; }
 
 .remove, .edit { display: block; padding: 0.5em; }
