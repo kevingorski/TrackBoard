@@ -1,6 +1,6 @@
 var board = (function() {
 	var settings = {
-		version : '0.0.1',
+		version : '0.0.2',
 		drawerOpen : false,
 		refreshRate : 10
 	};
