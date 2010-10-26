@@ -1,32 +1,4 @@
-/* Sticky Footer */
-html, body { height: 100%; }
-#container { min-height:100%; }
-#main { overflow: auto; padding-bottom: 150px; }
-footer { 
-	background: #AAA;
-	position: relative; 
-	margin-top: -150px; 
-	padding: 0 3em;
-	height: 150px; 
-	clear:both;
-}
-
-/* Opera Fix */
-body:before {
-	content:"";
-	height:100%;
-	float:left;
-	width:0;
-	margin-top:-32767px;
-}
-
-footer ul {	padding: 1em 0;	list-style: none; }
-footer li {	margin-top: .5em; }
-
-body.ie6 #container, body.ie8 #container { display:table; height:100%; width:100%; }
-
-
-/* Header */
+/*	Header */
 header { background: #CCC; border-bottom: solid thin #999; }
 
 header, #board { padding: 1em 3em; }
@@ -42,12 +14,53 @@ h1 a, h1 a:link, h1 a:visited {
 h1 a:hover { text-shadow: 1px 1px 2px #777; }
 
 
-/* Default tag styles */
+/*	Sticky Footer */
+html, body { height: 100%; }
+
+#container { min-height:100%; }
+
+#main { overflow: auto; padding-bottom: 150px; }
+
+footer { 
+	background: #AAA;
+	position: relative; 
+	margin-top: -150px; 
+	padding: 0 3em;
+	height: 150px; 
+	clear:both;
+}
+
+
+/*	-	Opera Fix */
+body:before {
+	content:"";
+	height:100%;
+	float:left;
+	width:0;
+	margin-top:-32767px;
+}
+
+body.ie6 #container, body.ie8 #container { 
+	display:table; 
+	height:100%; 
+	width:100%;
+}
+
+
+/*	Other Footer */
+footer ul {	padding: 1em 0;	list-style: none; }
+
+footer li {	margin-top: .5em; }
+
+
+/*	Default tag styles */
 h3 { margin-bottom: 0.5em; }
 
 p { padding-bottom: 1em; }
 
-input { margin-right: 1em;}
+
+/*		- Inputs */
+input { margin-right: 1em; }
 
 input[type=text],
 input[type=number],
@@ -67,88 +80,14 @@ input[type=url]
 	);
 }
 
-input[type=checkbox] {
-	height: 2em; padding: .5em;
-}
+input[type=checkbox] { height: 2em; padding: .5em; }
 
-input[type=number] {
-	width: 5em;
-}
+input[type=number] { width: 5em; }
 
 
-/* The rest */
-.Loading { padding: 1em; }
-
+/*	Tracker list and configuration */
 #configuration { width: 400px; }
-#results { clear: both; }
 
-.addTracker, 
-.editor input 
-{ border: solid thin black; border-radius: .5em; -moz-border-radius: .5em; }
-
-.editor label {
-	display: block;
-	float: left;
-	line-height: 2.5em;
-	vertical-align: middle;
-	width: 6em;
-}
-
-.editor div {
-	clear: left;
-	margin-bottom: .5em;
-}
-
-.editor .buttons { float: left; margin-left: 6em; clear: right; }
-
-input.addTracker, 
-input.saveTracker, 
-input.cancel { 
-	color: #EEE; 
-	width: 6em; 
-	height: 2.5em; 
-	font-weight: bold; 
-	padding: 0.5em;
-	background: #B22; 
-	background-image: -webkit-gradient(linear, left top, left bottom,
-	    color-stop(0.19, rgb(219,52,52)),
-	    color-stop(0.6, rgb(187,34,34)),
-	    color-stop(0.8, rgb(160,25,25)));
-	background-image: -moz-linear-gradient(
-	    center top,
-	    rgb(219,52,52) 19%,
-	    rgb(187,34,34) 60%,
-	    rgb(160,25,25) 80%
-	);
-}
-
-.no-cssgradients input.addTracker, 
-.no-cssgradients input.saveTracker, 
-.no-cssgradients input.cancel {
-	background-image: url(../images/button_background.png);
-}
-
-input.addTracker:hover, 
-input.saveTracker:hover, 
-input.cancel:hover { 
-	background: #C33; 
-	background-image: -webkit-gradient(linear, left top, left bottom,
-	    color-stop(0.19, rgb(239,72,72)),
-	    color-stop(0.6, rgb(207,54,54)),
-	    color-stop(0.8, rgb(180,45,45)));
-	background-image: -moz-linear-gradient(
-	    center top,
-	    rgb(239,72,72) 19%,
-	    rgb(207,54,54) 60%,
-	    rgb(180,45,45) 80%
-	);
-	transition: background-image .5s; 
-	-webkit-transition: background-image .5s; 
-	-moz-transition: background-image .5s; 
-	-o-transition: background-image .5s;
-}
-
-/* Tracker List */
 #trackers {
 	background: #333;
 	color: #BBB;
@@ -187,8 +126,12 @@ input.cancel:hover {
 
 #trackers .editor { margin-bottom: 1em; }
 
+#results { clear: both; }
 
+
+/*	Tracker drawer handle */
 #trackerHandle { text-align: center; }
+
 #trackerHandle input { 
 	width: 5em; 
 	color: #000; 
@@ -206,10 +149,6 @@ input.cancel:hover {
 	    rgb(200,200,200) 60%,
 	    rgb(190,190,190) 80%
 	);
-}
-
-.no-cssgradients #trackerHandle input {
-	background-image: url(../images/drawer_button_background.png);
 }
 
 #trackerHandle input:hover { 
@@ -230,10 +169,18 @@ input.cancel:hover {
 	-o-transition: background-image .5s;
 }
 
-/* Board & Widgets */
+.no-cssgradients #trackerHandle input { background-image: url(../images/drawer_button_background.png); }
+
+
+/*	Board */
 #board { clear: both; }
+
 #board .editor { overflow: auto; }
 
+.introduction	{ width: auto; float: none; }
+
+
+/*	Widgets */
 .widget {
 	border: thin solid black; 
 	margin: 0 1em 1em 0; 
@@ -246,23 +193,8 @@ input.cancel:hover {
 	width: 400px;
 }
 
-.introduction	{ width: auto; float: none; }
-.widget .editor	{ padding: 1em; background: #CCC; }
-.body 			{ padding: 1em; }
-
-.toolbar { 
-	overflow: auto; display: block; float: right; width: 50px; text-align: center; 
-	opacity: 0; 
-	visibility: hidden;
-	transition: opacity 1s; 
-	-webkit-transition: opacity 1s; 
-	-moz-transition: opacity 1s; 
-	-o-transition: opacity 1s; 
-}
-
-.toolbar a { text-decoration: none; }
-
 .widget:hover { background-color: #FFF; }
+
 .csstransforms .widget:hover {
 	transition: all 0.5s;
 	-webkit-transition: all 0.5s;
@@ -277,23 +209,127 @@ input.cancel:hover {
 	-moz-box-shadow: 5px 5px 5px #555;
 }
 
+.body { padding: 1em; }
+
+.widget ol,
+.widget ul { margin: 0; }
+
+.widget li {
+	background: #DDD;
+	list-style: none;
+	margin: 0 0 1em;
+	padding-left: 1em;
+}
+
+.widget li:hover { background: #EEE; }
+
+.Loading { padding: 1em; }
+
+
+/*		- Toolbar */
+.toolbar { 
+	overflow: auto; display: block; float: right; width: 50px; text-align: center; 
+	opacity: 0; 
+	visibility: hidden;
+	transition: opacity 1s; 
+	-webkit-transition: opacity 1s; 
+	-moz-transition: opacity 1s; 
+	-o-transition: opacity 1s; 
+}
+
 #board .widget:hover .toolbar { opacity: 1; visibility: visible; }
+
+.toolbar a { text-decoration: none; }
 
 .remove, .edit { display: block; padding: 0.5em; }
 
 
-.widget ol,
-.widget ul { margin: 0; }
-.widget li { background: #DDD; list-style: none; margin: 0 0 1em; padding-left: 1em; }
-.widget li:hover { background: #EEE; }
+/*		- Editor */
+.widget .editor	{ padding: 1em; background: #CCC; }
 
-/* Tracker-specific */
+
+.addTracker, 
+.editor input {
+	border: solid thin black; 
+	border-radius: .5em; 
+	-moz-border-radius: .5em;
+}
+
+.editor label {
+	display: block;
+	float: left;
+	line-height: 2.5em;
+	vertical-align: middle;
+	width: 6em;
+}
+
+.editor div { clear: left; margin-bottom: .5em; }
+
+.editor .buttons { 
+	float: left; 
+	margin-left: 6em; 
+	clear: right;
+}
+
+input.addTracker,
+input.saveTracker,
+input.cancel {
+	color: #EEE; 
+	width: 6em; 
+	height: 2.5em; 
+	font-weight: bold; 
+	padding: 0.5em;
+	background: #B22; 
+	background-image: -webkit-gradient(linear, left top, left bottom,
+	    color-stop(0.19, rgb(219,52,52)),
+	    color-stop(0.6, rgb(187,34,34)),
+	    color-stop(0.8, rgb(160,25,25)));
+	background-image: -moz-linear-gradient(
+	    center top,
+	    rgb(219,52,52) 19%,
+	    rgb(187,34,34) 60%,
+	    rgb(160,25,25) 80%
+	);
+}
+
+input.addTracker:hover, 
+input.saveTracker:hover, 
+input.cancel:hover { 
+	background: #C33; 
+	background-image: -webkit-gradient(linear, left top, left bottom,
+	    color-stop(0.19, rgb(239,72,72)),
+	    color-stop(0.6, rgb(207,54,54)),
+	    color-stop(0.8, rgb(180,45,45)));
+	background-image: -moz-linear-gradient(
+	    center top,
+	    rgb(239,72,72) 19%,
+	    rgb(207,54,54) 60%,
+	    rgb(180,45,45) 80%
+	);
+	transition: background-image .5s; 
+	-webkit-transition: background-image .5s; 
+	-moz-transition: background-image .5s; 
+	-o-transition: background-image .5s;
+}
+
+.no-cssgradients input.addTracker, 
+.no-cssgradients input.saveTracker, 
+.no-cssgradients input.cancel {
+	background-image: url(../images/button_background.png);
+}
+
+
+/*	Tracker-specific */
 .TwitterSearch { list-style: none; padding: 0; margin: 0; }
+
 .TwitterSearch li { clear: both; overflow: auto; margin-left: 0; padding: 0; }
+
 .TwitterSearch img { display: block; float: left; height: 3em; width: 3em; margin-right: 1em;}
 
-/* Modernizr styles */
+
+/*	Modernizr styles */
 html.localstorage .no-localstorage { display: none; }
+
 html.no-localstorage .localstorage { display: none; }
 
 .editor .ui-spinner-input {
@@ -305,4 +341,5 @@ html.no-localstorage .localstorage { display: none; }
 
 .ui-spinner-input,
 .ui-spinner-buttons { display: inline-block; vertical-align: top; }
+
 .ui-spinner-buttons .ui-spinner-button { overflow: hidden; margin: 0; }
