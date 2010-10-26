@@ -78,6 +78,34 @@ var board = (function() {
 		board.updateSetting('drawerOpen', false);
 	};
 	
+	var addWidgetData = function(data, trackerTitle) {
+		// Don't re-save while re-creating widgets from storage
+		if(loading) { return; }
+		
+		state.push({
+			'queryData': data,
+			'trackerTitle': trackerTitle
+		});
+		
+		save();
+	};
+	
+	var updateWidgetData = function(widget, data, trackerTitle) {
+		state[$("#board .widget").index(widget)] = {
+			'queryData': data,
+			'trackerTitle': trackerTitle
+		};
+		
+		save();
+	};
+	
+	var save = function() {
+		// Local-only storage for now
+		if(!Modernizr.localstorage) { return; }
+		
+		// This could throw QUOTA_EXCEEDED_ERR, but deferring
+		localStorage.setItem(boardStateKey, JSON.stringify(state));
+	};
 	
 	return {
 		load : function () {
@@ -139,17 +167,25 @@ var board = (function() {
 			
 			loading = false;
 		},
+		
+		removeWidgetData : function(widget) {
+			state.splice($('#board .widget').index(widget), 1);
+			
+			save();
+		},
 
 		createWidget : function(tracker, queryData) {
 			queryData = queryData || collectConfigurationData();
 			
-			loadWidget(tracker, queryData, '#board')
+			var widget = loadWidget(tracker, queryData, '#board');
+			
+			widget
 				.data({
 					'tracker': tracker, 
 					'data': queryData })
 				.prepend('toolbarTemplate', {});
-
-			board.save();
+			
+			addWidgetData(queryData, tracker.title);
 		},
 		
 		updateWidgets : function() {
@@ -163,12 +199,13 @@ var board = (function() {
 		
 		updateWidget : function(widget) {
 			var queryData = collectConfigurationData(widget);
+			var tracker = widget.data().tracker;
 			
-			loadWidget(widget.data().tracker, queryData, widget);
+			loadWidget(tracker, queryData, widget);
 
 			widget.data('data', queryData);
 			
-			board.save();
+			updateWidgetData(widget, queryData, tracker.title);
 		},
 		
 		displayPreview : function(tracker, queryData) {
@@ -177,24 +214,6 @@ var board = (function() {
 			$(selector).empty();
 
 			loadWidget(tracker, queryData || collectConfigurationData(), selector);
-		},
-		
-		save : function() {
-			if(!Modernizr.localstorage || loading) { return; }
-			
-			state = [];
-			
-			$('#board .widget:not(.introduction)').each(function() {
-				var data = $(this).data();
-				
-				state.push({
-					'queryData': data.data,
-					'trackerTitle': data.tracker.title
-				});
-			});
-			
-			// This could throw QUOTA_EXCEEDED_ERR, but deferring
-			localStorage.setItem(boardStateKey, JSON.stringify(state));
 		},
 		
 		updateSetting : function(settingName, newValue) {
@@ -223,14 +242,13 @@ var board = (function() {
 
 $('.remove').live('click', function(event) {
 	event.preventDefault();
+	var widget = $(this).parents('.widget');
 	
-	$(this)
-		.parents('.widget')
-		.fadeOut(function() { 
-			$(this).remove();
-		
-			board.save();
-		});
+	board.removeWidgetData(widget);
+	
+	widget.fadeOut(function() { 			
+		$(this).remove();
+	});
 });
 
 $('.saveTracker').live('click', function() {
