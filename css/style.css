@@ -58,6 +58,18 @@ h3 { margin-bottom: 0.5em; }
 
 p { padding-bottom: 1em; }
 
+::selection { 
+	background: #fcff6e; 
+	color: #424242; 
+	text-shadow: none;
+}
+
+::-moz-selection {
+	background: #fcff6e;
+	color:#424242;
+	text-shadow: none;
+}
+
 
 /*		- Inputs */
 input { margin-right: 1em; }

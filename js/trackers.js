@@ -61,7 +61,7 @@ var trackers = [
 		'<div><label>Title:</label><input name="title" type="text" value="${title}" /></div>' +
 			'<div><label>RSS:</label><input name="rssUrl" value="${rssUrl}" type="url" /></div>' +
 			'<div><label>Limit:</label><input name="limit" type="number" value="${limit}" min="1" max="50" /></div>',
-		{ title: "Yahoo Top Stories", rssUrl: "rss.news.yahoo.com/rss/topstories", limit: 3 },
+		{ title: "Yahoo Top Stories", rssUrl: "http://rss.news.yahoo.com/rss/topstories", limit: 3 },
 		function(data) { return 'select * from rss(0,' + data.limit + ') where url="' + data.rssUrl + '"'; },
 		'<h3>${title}</h3><ol>{{each item}}<li><a href="${link}">${title}</a></li>{{/each}}</ol>'),
 
