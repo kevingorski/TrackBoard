@@ -5,8 +5,10 @@ var board = (function() {
 		refreshRate : 10
 	};
 	var state = [];
+	var undoState = [];
 	var loading = false;
 	var pollingHandle;
+	var undoMessageDisplayHandle;
 
 	var boardStateKey = 'boardState';
 	var settingsKey = 'settings';
@@ -31,7 +33,7 @@ var board = (function() {
 		return updatedData;
 	};
 
-	var loadWidget = function(tracker, queryData, appendToSelector) {
+	var loadWidget = function(tracker, queryData, appendToSelector, index) {
 		var loadingWidget = true;
 		var widget;
 
@@ -40,7 +42,11 @@ var board = (function() {
 		} else {
 			widget = $('<div class="widget"><div class="body">Loading...</div></div>');
 			
-			widget.appendTo(appendToSelector);
+			if(index) {
+				$(appendToSelector + ' .widget:eq(' + (index - 1) + ')').after(widget);
+			} else {
+				widget.appendTo(appendToSelector);
+			}
 		}
 
 		var pulse = function() {
@@ -169,15 +175,22 @@ var board = (function() {
 		},
 		
 		removeWidgetData : function(widget) {
-			state.splice($('#board .widget').index(widget), 1);
+			var index = $('#board .widget').index(widget);
+			var originalState = state.splice(index, 1)[0];
+			
+			undoState.push({ action:"remove", index: index, widgetState: originalState });
+			
+			$('#undoMessage').fadeIn();
+			
+			board.removeUndoMessage();
 			
 			save();
 		},
 
-		createWidget : function(tracker, queryData) {
+		createWidget : function(tracker, queryData, index) {
 			queryData = queryData || collectConfigurationData();
 			
-			var widget = loadWidget(tracker, queryData, '#board');
+			var widget = loadWidget(tracker, queryData, '#board', index);
 			
 			widget
 				.data({
@@ -233,6 +246,33 @@ var board = (function() {
 		
 		stopUpdating : function() {
 			clearInterval(pollingHandle);
+		},
+		
+		undo : function() {
+			var action = undoState.pop();
+			
+			switch(action.action) {
+				case "remove":
+					var item = action.widgetState;
+					var tracker = $.grep(trackers, function(t) { return t.title == item.trackerTitle; })[0];
+
+					board.createWidget(tracker, item.queryData, action.index);
+				break;
+			}
+			
+			if(undoState.length == 0) {
+				$('#undoMessage').fadeOut();
+			}
+		},
+		
+		removeUndoMessage : function() {
+			undoMessageDisplayHandle = setTimeout(function() {
+				$('#undoMessage').fadeOut();
+			}, 3000);
+		},
+		
+		keepUndoMessage : function() {
+			clearTimeout(undoMessageDisplayHandle);
 		}
 	};
 }());
@@ -298,6 +338,19 @@ $('#trackers ul li').live('click', function(event) {
 	board.displayPreview(tracker, tracker.defaultData);
 });
 
+$('#undoMessage a').live('click', function(event) {
+	event.preventDefault();
+	
+	board.undo();
+});
+
+$('#undoMessage').live('mouseenter', function() {
+	board.keepUndoMessage();
+});
+
+$('#undoMessage').live('mouseleave', function() {
+	board.removeUndoMessage();
+});
 
 var enhanceNumericTextboxes = function(context) {
 	// Modernizr cares if programmatic assignement of value rejects invalid data; I don't
@@ -316,6 +369,8 @@ var enhanceNumericTextboxes = function(context) {
 //		DOM INITIALIZATION
 
 $(function() {
+	$('#undoMessage').hide();
+	
 	$(trackers).each(function() {
 		$('#trackers ul').append('<li><a href="#">' + this.title + '</a></li>');
 	});

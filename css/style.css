@@ -189,7 +189,9 @@ input[type=number] { width: 5em; }
 
 #board .editor { overflow: auto; }
 
-.introduction	{ width: auto; float: none; }
+.introduction { width: auto; float: none; }
+
+#undoMessage { padding: 1em; }
 
 
 /*	Widgets */
