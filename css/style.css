@@ -204,7 +204,7 @@ input[type=number] { width: 5em; }
 #board .dropPlaceholder {
 	display: block;
 	border: 1px solid #ea2600; 
-	background: #ffe5e5 url(images/ui-bg_glass_55_fbf9ee_1x400.png) repeat-x 50% 50%;
+	background: #ffe5e5;
 	color: #b93500;
 }
 

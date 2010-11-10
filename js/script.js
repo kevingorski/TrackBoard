@@ -9,6 +9,7 @@ var board = (function() {
 	var loading = false;
 	var pollingHandle;
 	var undoMessageDisplayHandle;
+	var dragStartIndex;
 
 	var boardStateKey = 'boardState';
 	var settingsKey = 'settings';
@@ -129,6 +130,24 @@ var board = (function() {
 				.render(settings)
 				.appendTo('footer');
 			
+			$('#board').sortable({
+				placeholder: 'ui-state-highlight dropPlaceholder',
+				forcePlaceholderSize: true,
+				handle: '.body',
+				start: function(event, ui) {
+					dragStartIndex = $("#board .widget").index(ui.item);
+				},
+				update: function(event, ui) {
+					var dragEndIndex = $("#board .widget").index(ui.item);
+					var swap = state[dragStartIndex];
+					
+					state[dragStartIndex] = state[dragEndIndex];
+					state[dragEndIndex] = swap;
+					
+					save();
+				}
+			});
+			
 			if(!readCookie('lastVisited')) {
 				this.displayIntroduction();
 			}
@@ -169,7 +188,7 @@ var board = (function() {
 				handle.toggle(openDrawer, closeDrawer);
 			}
 			
-//			pollingHandle = setInterval(this.updateWidgets, settings.refreshRate * 1000);
+			pollingHandle = setInterval(this.updateWidgets, settings.refreshRate * 1000);
 			
 			loading = false;
 		},
@@ -370,23 +389,9 @@ var enhanceNumericTextboxes = function(context) {
 //		DOM INITIALIZATION
 
 $(function() {
-	$('#undoMessage').hide();
-	
 	$(trackers).each(function() {
 		$('#trackers ul').append('<li><a href="#">' + this.title + '</a></li>');
 	});
-	
-	$('#board').sortable({
-		placeholder: 'ui-state-highlight dropPlaceholder',
-		forcePlaceholderSize: true,
-		handle: '.body'
-	});
-	
-	if(Modernizr.draganddrop) {
-		
-	} else {
-		// TODO: Add library for DND support
-	}
 	
 	board.load();
 });
