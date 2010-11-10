@@ -58,6 +58,13 @@ h3 { margin-bottom: 0.5em; }
 
 p { padding-bottom: 1em; }
 
+[draggable] {
+	-moz-user-select: none;
+	-khtml-user-select: none;
+	-webkit-user-select: none;
+	user-select: none;
+}
+
 ::selection { 
 	background: #fcff6e; 
 	color: #424242; 
@@ -185,42 +192,55 @@ input[type=number] { width: 5em; }
 
 
 /*	Board */
-#board { clear: both; }
+#board { clear: both; margin: 0; }
+
+.widget, .dropPlaceholder {
+	list-style-type: none;
+	float: left;
+	margin: 0 1em 1em 0;
+	width: 400px;
+}
+
+#board .dropPlaceholder {
+	display: block;
+	border: 1px solid #ea2600; 
+	background: #ffe5e5 url(images/ui-bg_glass_55_fbf9ee_1x400.png) repeat-x 50% 50%;
+	color: #b93500;
+}
 
 #board .editor { overflow: auto; }
 
 .introduction { width: auto; float: none; }
 
-#undoMessage { padding: 1em; }
+#undoMessage { display: none; padding: 1em 3em; }
 
 
 /*	Widgets */
 .widget {
 	border: thin solid black; 
-	margin: 0 1em 1em 0; 
-	background: #EEE; 
-	transition: background-color .5s; 
-	-webkit-transition: background-color .5s; 
-	-moz-transition: background-color .5s; 
-	-o-transition: background-color .5s;
-	float: left;
-	width: 400px;
+	background: #EEE;
 }
+
+#board .widget .body { cursor: move; }
 
 .widget:hover { background-color: #FFF; }
 
+
 .csstransforms .widget:hover {
 	transition: all 0.5s;
-	-webkit-transition: all 0.5s;
 	-moz-transition: all 0.5s;
 	-o-transition: all 0.5s;
 	
 	transform:translate(-5px, -5px);
-	-webkit-transform:translate(-5px, -5px);
 	
 	box-shadow: 5px 5px 5px #555;
-	-webkit-box-shadow: 5px 5px 5px #555;
 	-moz-box-shadow: 5px 5px 5px #555;
+
+	/* Disabled to make drag & drop smoother 
+	-webkit-transition: all 0.5s;
+	-webkit-transform:translate(-5px, -5px);
+	-webkit-box-shadow: 5px 5px 5px #555;
+	*/
 }
 
 .body { padding: 1em; }

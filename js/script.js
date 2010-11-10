@@ -40,7 +40,7 @@ var board = (function() {
 		if(appendToSelector.jquery) {
 			widget = $(appendToSelector);
 		} else {
-			widget = $('<div class="widget"><div class="body">Loading...</div></div>');
+			widget = $('<li class="widget"><div class="body">Loading...</div></li>');
 			
 			if(index) {
 				$(appendToSelector + ' .widget:eq(' + (index - 1) + ')').after(widget);
@@ -169,7 +169,7 @@ var board = (function() {
 				handle.toggle(openDrawer, closeDrawer);
 			}
 			
-			pollingHandle = setInterval(this.updateWidgets, settings.refreshRate * 1000);
+//			pollingHandle = setInterval(this.updateWidgets, settings.refreshRate * 1000);
 			
 			loading = false;
 		},
@@ -196,7 +196,8 @@ var board = (function() {
 				.data({
 					'tracker': tracker, 
 					'data': queryData })
-				.prepend('toolbarTemplate', {});
+				.prepend('toolbarTemplate', {})
+				.attr("draggable", "true");
 			
 			addWidgetData(queryData, tracker.title);
 		},
@@ -268,7 +269,7 @@ var board = (function() {
 		removeUndoMessage : function() {
 			undoMessageDisplayHandle = setTimeout(function() {
 				$('#undoMessage').fadeOut();
-			}, 3000);
+			}, 5000);
 		},
 		
 		keepUndoMessage : function() {
@@ -374,6 +375,18 @@ $(function() {
 	$(trackers).each(function() {
 		$('#trackers ul').append('<li><a href="#">' + this.title + '</a></li>');
 	});
-				
+	
+	$('#board').sortable({
+		placeholder: 'ui-state-highlight dropPlaceholder',
+		forcePlaceholderSize: true,
+		handle: '.body'
+	});
+	
+	if(Modernizr.draganddrop) {
+		
+	} else {
+		// TODO: Add library for DND support
+	}
+	
 	board.load();
 });
