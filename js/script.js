@@ -2,7 +2,7 @@ var board = (function() {
 	var settings = {
 		version : '0.0.3',
 		drawerOpen : false,
-		refreshRate : 10000
+		refreshRate : 10
 /*		, plusServer : 'trackboardplus.heroku.com'
 */
 	};
@@ -230,7 +230,7 @@ var board = (function() {
 				handle.toggle(openDrawer, closeDrawer);
 			}
 			
-//			pollingHandle = setInterval(this.updateWidgets, settings.refreshRate * 1000);
+			pollingHandle = setInterval(this.updateWidgets, settings.refreshRate * 1000);
 			
 			loading = false;
 		},
