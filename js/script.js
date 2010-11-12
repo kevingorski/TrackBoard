@@ -20,9 +20,9 @@ var board = (function() {
 	var settingsKey = 'settings';
 	
 	var keyBindings = [
-		{ keys: 'h ? shift+? shift+/', description: 'This menu', action: function() { console.log('Help menu'); } },
-		{ keys: 'ctrl+z meta+z', description: 'Undo', action: function() { board.undo(); } },
-		{ keys: 'space', description: 'Opens and closes the tracker drawer', action: function(e) { $('#trackerHandle input').click(); e.preventDefault(); } }
+		{ keys: 'h shift+?', description: 'This menu', action: function() { console.log('Help menu'); } },
+		{ keys: 'ctrl+z meta+z', event:'keydown', description: 'Undo', action: function() { board.undo(); } },
+		{ keys: 'space', event:'keydown', description: 'Opens and closes the tracker drawer', action: function(e) { $('#trackerHandle input').click(); e.preventDefault(); } }
 	];
 	
 	var collectConfigurationData = function(widget) {
@@ -175,7 +175,7 @@ var board = (function() {
 		});
 
 		$(keyBindings).each(function(){
-			$(document).bind('keydown', this.keys, this.action);
+			$(document).bind(this.event || 'keypress', this.keys, this.action);
 		});
 	};
 	
