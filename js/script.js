@@ -18,6 +18,11 @@ var board = (function() {
 	var boardStateKey = 'boardState';
 	var settingsKey = 'settings';
 	
+	var keyBindings = [
+		{ keys: 'h shift+/ ? shift+?', description: 'This menu', action: function() { console.log('Help menu'); } },
+		{ keys: 'ctrl+z meta+z', description: 'Undo', action: function() { board.undo(); } },
+		{ keys: 'space', description: 'Opens and closes the tracker drawer', action: function(e) { $('#trackerHandle input').click(); e.preventDefault(); } }
+	];
 	
 	var collectConfigurationData = function(widget) {
 		var updatedData = {};
@@ -167,9 +172,9 @@ var board = (function() {
 				save();
 			}
 		});
-		
-		$(document).bind('keydown', 'ctrl+z meta+z', function(event) {
-			board.undo();
+
+		$(keyBindings).each(function(){
+			$(document).bind('keydown', this.keys, this.action);
 		});
 	};
 	
@@ -182,6 +187,8 @@ var board = (function() {
 				board.createWidget(tracker, item.queryData);
 			}
 		});
+		
+		loading = false;
 	};
 	
 	return {
@@ -213,6 +220,8 @@ var board = (function() {
 
 					if(json) {
 						buildThatBoard(state = $.parseJSON(json));
+					} else {
+						loading = false;
 					}
 				}
 			}
@@ -236,8 +245,6 @@ var board = (function() {
 			}
 			
 			pollingHandle = setInterval(this.updateWidgets, settings.refreshRate * 1000);
-			
-			loading = false;
 		},
 		
 		removeWidgetData : function(widget) {
