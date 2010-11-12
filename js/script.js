@@ -6,6 +6,7 @@ var board = (function() {
 		drawerOpen : false,
 		refreshRate : 10,
 		plusServer : 'trackboardplus.heroku.com'
+		//plusServer : '0.0.0.0:9292'
 	};
 	var state = [];
 	var undoState = [];
@@ -127,7 +128,7 @@ var board = (function() {
 				type: 'POST',
 				dataType: 'json',
 				url: 'http://' + settings.plusServer + '/board',
-				data: state,
+				data: JSON.stringify(state),
 				error: function(request, status, error) {
 					// Retry?
 					console.log(status);
@@ -228,7 +229,7 @@ var board = (function() {
 			
 			if(canUsePlusServer) {
 				$.getJSON('http://' + settings.plusServer + '/board', function(data) {
-					state = data | [];
+					state = data;
 					
 					buildThatBoard();
 				});
