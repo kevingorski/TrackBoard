@@ -1,13 +1,15 @@
 var board = (function() {
+	var meta = {
+		version : '0.0.3'
+	};
 	var settings = {
-		version : '0.0.3',
 		drawerOpen : false,
-		refreshRate : 10
-/*		, plusServer : 'trackboardplus.heroku.com'
-*/
+		refreshRate : 10,
+		plusServer : 'trackboardplus.heroku.com'
 	};
 	var state = [];
 	var undoState = [];
+	var canUsePlusServer = false;
 	var loading = false;
 	var pollingHandle;
 	var undoMessageDisplayHandle;
@@ -115,7 +117,7 @@ var board = (function() {
 	};
 	
 	var save = function() {
-		if(settings.plusServer) {
+		if(canUsePlusServer) {
 			$.ajax({
 				type: 'POST',
 				dataType: 'json',
@@ -145,7 +147,7 @@ var board = (function() {
 		});
 
 		$('#footerTemplate')
-			.render(settings)
+			.render($.extend(settings, meta))
 			.appendTo('footer');
 		
 		$('#board').sortable({
@@ -189,6 +191,8 @@ var board = (function() {
 			
 			initializeDOM();
 			
+			canUsePlusServer = settings.plusServer && settings.plusServer == window.location.host;
+			
 			if(!readCookie('lastVisited')) {
 				this.displayIntroduction();
 			}
@@ -199,10 +203,11 @@ var board = (function() {
 				json = localStorage.getItem(settingsKey);
 
 				if(json) {
-					settings = $.parseJSON(json);				
+					// Merge new defaults into stored settings
+					settings = $.extend(settings, $.parseJSON(json));
 				}
 			
-				if(!settings.plusServer) {
+				if(!canUsePlusServer) {
 					// Load and apply widgets
 					var json = localStorage.getItem(boardStateKey);
 
@@ -212,7 +217,7 @@ var board = (function() {
 				}
 			}
 			
-			if(settings.plusServer) {
+			if(canUsePlusServer) {
 				$.getJSON('http://' + settings.plusServer + '/board', function(data) {
 					state = data;
 					
@@ -302,7 +307,7 @@ var board = (function() {
 		
 		displayIntroduction : function() {
 			$('#introductionTemplate')
-				.render(settings)
+				.render($.extend(settings, meta))
 				.appendTo('#board');
 		},
 		
