@@ -1,8 +1,10 @@
 var board = (function() {
 	var settings = {
-		version : '0.0.2',
+		version : '0.0.3',
 		drawerOpen : false,
-		refreshRate : 10
+		refreshRate : 10000
+/*		, plusServer : 'trackboardplus.heroku.com'
+*/
 	};
 	var state = [];
 	var undoState = [];
@@ -37,14 +39,18 @@ var board = (function() {
 	var loadWidget = function(tracker, queryData, appendToSelector, index) {
 		var loadingWidget = true;
 		var widget;
-
+		
 		if(appendToSelector.jquery) {
 			widget = $(appendToSelector);
 		} else {
 			widget = $('<li class="widget"><div class="body">Loading...</div></li>');
 			
-			if(index) {
-				$(appendToSelector + ' .widget:eq(' + (index - 1) + ')').after(widget);
+			if(typeof(index) != 'undefined') {
+				if(index == 0) { 
+					$(appendToSelector).prepend(widget);
+				} else {
+					$(appendToSelector + ' .widget:eq(' + (index - 1) + ')').after(widget);
+				}
 			} else {
 				widget.appendTo(appendToSelector);
 			}
@@ -85,15 +91,17 @@ var board = (function() {
 		board.updateSetting('drawerOpen', false);
 	};
 	
-	var addWidgetData = function(data, trackerTitle) {
+	var addWidgetData = function(data, trackerTitle, index) {
 		// Don't re-save while re-creating widgets from storage
 		if(loading) { return; }
 		
-		state.push({
+		var end = state.splice(index);
+		
+		state = state.concat({
 			'queryData': data,
 			'trackerTitle': trackerTitle
-		});
-		
+		}, end);
+
 		save();
 	};
 	
@@ -107,46 +115,79 @@ var board = (function() {
 	};
 	
 	var save = function() {
-		// Local-only storage for now
+		if(settings.plusServer) {
+			$.ajax({
+				type: 'POST',
+				dataType: 'json',
+				url: 'http://' + settings.plusServer + '/board',
+				data: state,
+				error: function(request, status, error) {
+					// Retry?
+					console.log(status);
+				}
+			 });
+			
+			return;
+		}
+		
 		if(!Modernizr.localstorage) { return; }
 		
 		// This could throw QUOTA_EXCEEDED_ERR, but deferring
 		localStorage.setItem(boardStateKey, JSON.stringify(state));
 	};
 	
+	var initializeDOM = function() {
+		$.extend($.templates, {
+			toolbarTemplate: $.tmpl('<div class="toolbar"><a href="#" class="remove">X</a><a href="#" class="edit">∆</a></div>'),
+			errorTemplate: $.tmpl('<div class="body">There was an error loading this tracker</div>'),
+			configurationButtons: $.tmpl('<div class="buttons"><input id="previewMenu" name="previewMenu" class="addTracker" value="Preview" type="button"><input id="goMenu" name="goMenu" class="addTracker" value="Add" type="button"></div>'),
+			editButtons: $.tmpl('<div class="buttons"><input class="saveTracker" value="Update" type="button"><input class="cancel" value="Cancel" type="button"></div>')
+		});
+
+		$('#footerTemplate')
+			.render(settings)
+			.appendTo('footer');
+		
+		$('#board').sortable({
+			placeholder: 'ui-state-highlight dropPlaceholder',
+			forcePlaceholderSize: true,
+			handle: '.body',
+			start: function(event, ui) {
+				dragStartIndex = $("#board .widget").index(ui.item);
+			},
+			update: function(event, ui) {
+				var dragEndIndex = $("#board .widget").index(ui.item);
+				var swap = state[dragStartIndex];
+				
+				state[dragStartIndex] = state[dragEndIndex];
+				state[dragEndIndex] = swap;
+				
+				save();
+			}
+		});
+		
+		$(document).bind('keydown', 'ctrl+z meta+z', function(event) {
+			board.undo();
+		});
+	};
+	
+	var buildThatBoard = function() {
+		$(state).each(function() {
+			var item = this,
+				tracker = $.grep(trackers, function(t) { return t.title == item.trackerTitle; })[0];
+
+			if(tracker) {
+				board.createWidget(tracker, item.queryData);
+			}
+		});
+	};
+	
 	return {
 		load : function () {
-			
+
 			loading = true;
-
-			$.extend($.templates, {
-				toolbarTemplate: $.tmpl('<div class="toolbar"><a href="#" class="remove">X</a><a href="#" class="edit">∆</a></div>'),
-				errorTemplate: $.tmpl('<div class="body">There was an error loading this tracker</div>'),
-				configurationButtons: $.tmpl('<div class="buttons"><input id="previewMenu" name="previewMenu" class="addTracker" value="Preview" type="button"><input id="goMenu" name="goMenu" class="addTracker" value="Add" type="button"></div>'),
-				editButtons: $.tmpl('<div class="buttons"><input class="saveTracker" value="Update" type="button"><input class="cancel" value="Cancel" type="button"></div>')
-			});
-
-			$('#footerTemplate')
-				.render(settings)
-				.appendTo('footer');
 			
-			$('#board').sortable({
-				placeholder: 'ui-state-highlight dropPlaceholder',
-				forcePlaceholderSize: true,
-				handle: '.body',
-				start: function(event, ui) {
-					dragStartIndex = $("#board .widget").index(ui.item);
-				},
-				update: function(event, ui) {
-					var dragEndIndex = $("#board .widget").index(ui.item);
-					var swap = state[dragStartIndex];
-					
-					state[dragStartIndex] = state[dragEndIndex];
-					state[dragEndIndex] = swap;
-					
-					save();
-				}
-			});
+			initializeDOM();
 			
 			if(!readCookie('lastVisited')) {
 				this.displayIntroduction();
@@ -155,27 +196,28 @@ var board = (function() {
 			createCookie('lastVisited', new Date(), 365);
 			
 			if(Modernizr.localstorage) {
-				// Load and apply widgets
-				var json = localStorage.getItem(boardStateKey);
-
-				if(json) {
-					state = $.parseJSON(json);
-
-					$(state).each(function() {
-						var item = this,
-							tracker = $.grep(trackers, function(t) { return t.title == item.trackerTitle; })[0];
-
-						if(tracker) {
-							board.createWidget(tracker, item.queryData);
-						}
-					});
-				}
-
 				json = localStorage.getItem(settingsKey);
 
 				if(json) {
 					settings = $.parseJSON(json);				
 				}
+			
+				if(!settings.plusServer) {
+					// Load and apply widgets
+					var json = localStorage.getItem(boardStateKey);
+
+					if(json) {
+						buildThatBoard(state = $.parseJSON(json));
+					}
+				}
+			}
+			
+			if(settings.plusServer) {
+				$.getJSON('http://' + settings.plusServer + '/board', function(data) {
+					state = data;
+					
+					buildThatBoard();
+				});
 			}
 			
 			var handle = $('#trackerHandle input');
@@ -188,7 +230,7 @@ var board = (function() {
 				handle.toggle(openDrawer, closeDrawer);
 			}
 			
-			pollingHandle = setInterval(this.updateWidgets, settings.refreshRate * 1000);
+//			pollingHandle = setInterval(this.updateWidgets, settings.refreshRate * 1000);
 			
 			loading = false;
 		},
@@ -196,14 +238,14 @@ var board = (function() {
 		removeWidgetData : function(widget) {
 			var index = $('#board .widget').index(widget);
 			var originalState = state.splice(index, 1)[0];
+						
+			save();
 			
 			undoState.push({ action:"remove", index: index, widgetState: originalState });
 			
 			$('#undoMessage').fadeIn();
 			
 			board.removeUndoMessage();
-			
-			save();
 		},
 
 		createWidget : function(tracker, queryData, index) {
@@ -218,7 +260,7 @@ var board = (function() {
 				.prepend('toolbarTemplate', {})
 				.attr("draggable", "true");
 			
-			addWidgetData(queryData, tracker.title);
+			addWidgetData(queryData, tracker.title, index);
 		},
 		
 		updateWidgets : function() {
@@ -269,6 +311,8 @@ var board = (function() {
 		},
 		
 		undo : function() {
+			if(undoState.length == 0) return;
+			
 			var action = undoState.pop();
 			
 			switch(action.action) {
