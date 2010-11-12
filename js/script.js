@@ -19,7 +19,7 @@ var board = (function() {
 	var settingsKey = 'settings';
 	
 	var keyBindings = [
-		{ keys: 'h shift+/ ? shift+?', description: 'This menu', action: function() { console.log('Help menu'); } },
+		{ keys: 'h ? shift+? shift+/', description: 'This menu', action: function() { console.log('Help menu'); } },
 		{ keys: 'ctrl+z meta+z', description: 'Undo', action: function() { board.undo(); } },
 		{ keys: 'space', description: 'Opens and closes the tracker drawer', action: function(e) { $('#trackerHandle input').click(); e.preventDefault(); } }
 	];
@@ -228,7 +228,7 @@ var board = (function() {
 			
 			if(canUsePlusServer) {
 				$.getJSON('http://' + settings.plusServer + '/board', function(data) {
-					state = data;
+					state = data | [];
 					
 					buildThatBoard();
 				});
