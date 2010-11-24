@@ -152,6 +152,10 @@ var board = (function() {
 			configurationButtons: $.tmpl('<div class="buttons"><input id="previewMenu" name="previewMenu" class="addTracker" value="Preview" type="button"><input id="goMenu" name="goMenu" class="addTracker" value="Add" type="button"></div>'),
 			editButtons: $.tmpl('<div class="buttons"><input class="saveTracker" value="Update" type="button"><input class="cancel" value="Cancel" type="button"></div>')
 		});
+		
+		$(trackers).each(function() {
+			$('#trackers ul').append('<li><a href="#">' + this.title + '</a></li>');
+		});
 
 		$('#footerTemplate')
 			.render($.extend(settings, meta))
@@ -161,6 +165,12 @@ var board = (function() {
 			.render({ shortcuts:keyBindings })
 			.appendTo('#container')
 			.hide();
+			
+		$('header h1 a').click(function(event) {
+			event.preventDefault();
+			
+			board.displayHelp();
+		});
 		
 		$('#board').sortable({
 			placeholder: 'ui-state-highlight dropPlaceholder',
@@ -466,9 +476,5 @@ var enhanceNumericTextboxes = function(context) {
 //		DOM INITIALIZATION
 
 $(function() {
-	$(trackers).each(function() {
-		$('#trackers ul').append('<li><a href="#">' + this.title + '</a></li>');
-	});
-	
 	board.load();
 });
