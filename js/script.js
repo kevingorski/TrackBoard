@@ -20,9 +20,10 @@ var board = (function() {
 	var settingsKey = 'settings';
 	
 	var keyBindings = [
-		{ keys: 'h shift+?', description: 'This menu', action: function() { console.log('Help menu'); } },
+		{ keys: 'h shift+?', description: 'This menu', action: function() { board.displayHelp(); } },
 		{ keys: 'ctrl+z meta+z', event:'keydown', description: 'Undo', action: function() { board.undo(); } },
-		{ keys: 'space', event:'keydown', description: 'Opens and closes the tracker drawer', action: function(e) { $('#trackerHandle input').click(); e.preventDefault(); } }
+		{ keys: 'space', event:'keydown', description: 'Opens and closes the tracker drawer', action: function(e) { $('#trackerHandle input').click(); e.preventDefault(); } },
+		{ keys: 'esc', event:'keydown', description:'Hides this menu', action: function() { board.hideHelp(); }}
 	];
 	
 	var collectConfigurationData = function(widget) {
@@ -155,6 +156,11 @@ var board = (function() {
 		$('#footerTemplate')
 			.render($.extend(settings, meta))
 			.appendTo('footer');
+		
+		$('#helpTemplate')
+			.render({ shortcuts:keyBindings })
+			.appendTo('#container')
+			.hide();
 		
 		$('#board').sortable({
 			placeholder: 'ui-state-highlight dropPlaceholder',
@@ -350,6 +356,14 @@ var board = (function() {
 		
 		keepUndoMessage : function() {
 			clearTimeout(undoMessageDisplayHandle);
+		},
+		
+		displayHelp : function() {
+			$('#helpDialog').toggle();
+		},
+		
+		hideHelp : function() {
+			$('#helpDialog').hide();
 		}
 	};
 }());
@@ -427,6 +441,12 @@ $('#undoMessage').live('mouseenter', function() {
 
 $('#undoMessage').live('mouseleave', function() {
 	board.removeUndoMessage();
+});
+
+$('#helpDialog .closeDialog').live('click', function(event) {
+	event.preventDefault();
+	
+	board.hideHelp();
 });
 
 var enhanceNumericTextboxes = function(context) {

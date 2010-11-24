@@ -91,5 +91,16 @@
 			<li><a href="http://github.com/kevingorski/trackboard/issues">Feedback</a></li>
 		</ul>
 	</script>
+	<script id="helpTemplate" type="text/html">
+		<div id="helpDialog" class="modalDialog">
+			<a href="#" class="closeDialog">X</a>
+			<h3>Keyboard shortcuts</h3>
+			<dl>
+				{{each shortcuts}}
+				<dt>${keys}</dt><dd>${description}</dd>
+				{{/each}}
+			</dl>
+		</div>
+	</script>
 </body>
 </html>

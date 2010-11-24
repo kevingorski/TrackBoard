@@ -214,6 +214,31 @@ input[type=number] { width: 5em; }
 
 #undoMessage { display: none; padding: 1em 3em; }
 
+.modalDialog {
+	background-color: black;
+	opacity: 0.85;
+	color: #EEE;
+	position: absolute;
+	top: 6em;
+	left: 6em;
+	right: 6em;
+	padding: 3em;
+}
+
+.modalDialog dt {
+	float: left;
+	font-weight: bold;
+	width: 9em;
+}
+
+.modalDialog dd {
+	clear: right;
+}
+
+.modalDialog .closeDialog {
+	float: right;
+	text-decoration: none;
+}
 
 /*	Widgets */
 .widget {
