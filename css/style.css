@@ -282,6 +282,11 @@ input[type=number] { width: 5em; }
 
 .widget li:hover { background: #EEE; }
 
+.activeWidget {
+	background: #EEE;
+	border-style: dashed;
+}
+
 .Loading { padding: 1em; }
 
 

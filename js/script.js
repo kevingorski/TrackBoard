@@ -381,6 +381,15 @@ var board = (function() {
 
 //		EVENT HANDLERS
 
+$('#board .widget').live('click', function(event) {
+	var wasActive = $(this).is('.activeWidget');
+	
+	$('#board .activeWidget').removeClass('activeWidget');
+
+	if(!wasActive)
+		$(this).addClass('activeWidget');
+});
+
 $('.remove').live('click', function(event) {
 	event.preventDefault();
 	var widget = $(this).parents('.widget');
