@@ -23,7 +23,11 @@ var board = (function() {
 		{ keys: 'h shift+?', description: 'This menu', action: function() { board.displayHelp(); } },
 		{ keys: 'ctrl+z meta+z', event:'keydown', description: 'Undo', action: function() { board.undo(); } },
 		{ keys: 'space', event:'keydown', description: 'Opens and closes the tracker drawer', action: function(e) { $('#trackerHandle input').click(); e.preventDefault(); } },
-		{ keys: 'esc', event:'keydown', description:'Hides this menu', action: function() { board.hideHelp(); }}
+		{ keys: 'esc', event:'keydown', description:'Hides this menu', action: function() { board.hideHelp(); } },
+		{ keys: 'left', event:'keydown', description:'Moves widget selection left', action: function() { board.moveWidgetSelection('←'); } },
+		{ keys: 'right', event:'keydown', description:'Moves widget selection right', action: function() { board.moveWidgetSelection('→'); } },
+		{ keys: 'up', event:'keydown', description:'Moves tracker selection up', action: function(event) { board.moveTrackerSelection('↑', event); } },
+		{ keys: 'down', event:'keydown', description:'Moves tracker selection down', action: function(event) { board.moveTrackerSelection('↓', event); } }
 	];
 	
 	var collectConfigurationData = function(widget) {
@@ -374,6 +378,53 @@ var board = (function() {
 		
 		hideHelp : function() {
 			$('#helpDialog').hide();
+		},
+		
+		moveWidgetSelection : function(direction) {
+			var activeWidget = $('.activeWidget');
+			var targetWidget;
+			
+			switch(direction) {
+				case '←':
+					targetWidget = activeWidget.length
+						? activeWidget.prev()
+						: $('#board .widget').last();
+					break;
+				case '→':
+					targetWidget = activeWidget.length
+						? activeWidget.next()
+						: $('#board .widget').first();
+					break;
+			}
+			
+			activeWidget.removeClass('activeWidget');
+			targetWidget.addClass('activeWidget');
+		},
+		
+		moveTrackerSelection : function(direction, event) {
+			if($('#trackerDrawer').height() == 0) return;
+			
+			event.preventDefault();
+			
+			var activeTracker = $('.activeTracker');
+			
+			switch(direction) {
+				case '↑':
+					targetTracker = activeTracker.length
+						? activeTracker.prev()
+						: $('#trackers li').last();
+					break;
+				case '↓':
+					targetTracker = activeTracker.length
+						? activeTracker.next()
+						: $('#trackers li').first();
+					break;
+			}
+			
+			targetTracker
+				.click()
+				.find('a')[0].focus();
+			
 		}
 	};
 }());
@@ -431,6 +482,9 @@ $('#trackers ul li').live('click', function(event) {
 	event.preventDefault();
 	
 	var tracker = trackers[$('#trackers ul li').index(this)];
+	
+	$('#trackers .activeTracker').removeClass('activeTracker');
+	$(this).addClass('activeTracker');
 	
 	$('#trackers .editor')
 		.html($.render(tracker.configurationTemplate + '{{include "configurationButtons"}}', tracker.defaultData));
