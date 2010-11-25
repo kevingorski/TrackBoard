@@ -23,11 +23,13 @@ var board = (function() {
 		{ keys: 'h shift+?', description: 'This menu', action: function() { board.displayHelp(); } },
 		{ keys: 'ctrl+z meta+z', event:'keydown', description: 'Undo', action: function() { board.undo(); } },
 		{ keys: 'space', event:'keydown', description: 'Opens and closes the tracker drawer', action: function(e) { $('#trackerHandle input').click(); e.preventDefault(); } },
-		{ keys: 'esc', event:'keydown', description:'Hides this menu', action: function() { board.hideHelp(); } },
-		{ keys: 'left', event:'keydown', description:'Moves widget selection left', action: function() { board.moveWidgetSelection('←'); } },
-		{ keys: 'right', event:'keydown', description:'Moves widget selection right', action: function() { board.moveWidgetSelection('→'); } },
+		{ keys: 'esc', event:'keydown', description:'Hides this menu or closes the active widget editor', action: function() { board.escape(); } },
+		{ keys: 'left j n', event:'keydown', description:'Moves widget selection left', action: function() { board.moveWidgetSelection('←'); } },
+		{ keys: 'right k p', event:'keydown', description:'Moves widget selection right', action: function() { board.moveWidgetSelection('→'); } },
 		{ keys: 'up', event:'keydown', description:'Moves tracker selection up', action: function(event) { board.moveTrackerSelection('↑', event); } },
-		{ keys: 'down', event:'keydown', description:'Moves tracker selection down', action: function(event) { board.moveTrackerSelection('↓', event); } }
+		{ keys: 'down', event:'keydown', description:'Moves tracker selection down', action: function(event) { board.moveTrackerSelection('↓', event); } },
+		{ keys: 'o e', description: 'Opens the widget editor', action: function() { board.openWidgetEditor(); } },
+		{ keys: 'backspace del', event:'keydown', description: 'Removes the current widget', action: function() { board.removeActiveWidget(); } }
 	];
 	
 	var collectConfigurationData = function(widget) {
@@ -380,6 +382,16 @@ var board = (function() {
 			$('#helpDialog').hide();
 		},
 		
+		escape : function() {
+			if($('#helpDialog:visible').length) {
+				board.hideHelp();
+				
+				return;
+			}
+			
+			$('.activeWidget .cancel').click();
+		},
+		
 		moveWidgetSelection : function(direction) {
 			var activeWidget = $('.activeWidget');
 			var targetWidget;
@@ -424,7 +436,14 @@ var board = (function() {
 			targetTracker
 				.click()
 				.find('a')[0].focus();
-			
+		},
+		
+		openWidgetEditor : function() {
+			$('.activeWidget .edit').click();
+		},
+		
+		removeActiveWidget : function() {
+			$('.activeWidget .remove').click();
 		}
 	};
 }());
@@ -433,12 +452,11 @@ var board = (function() {
 //		EVENT HANDLERS
 
 $('#board .widget').live('click', function(event) {
-	var wasActive = $(this).is('.activeWidget');
+	if($(this).is('.activeWidget')) return;
 	
 	$('#board .activeWidget').removeClass('activeWidget');
 
-	if(!wasActive)
-		$(this).addClass('activeWidget');
+	$(this).addClass('activeWidget');
 });
 
 $('.remove').live('click', function(event) {
