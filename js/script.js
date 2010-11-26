@@ -155,8 +155,8 @@ var board = (function() {
 		$.extend($.templates, {
 			toolbarTemplate: $.tmpl('<div class="toolbar"><a href="#" class="remove">X</a><a href="#" class="edit">∆</a></div>'),
 			errorTemplate: $.tmpl('<div class="body">There was an error loading this tracker</div>'),
-			configurationButtons: $.tmpl('<div class="buttons"><input id="previewMenu" name="previewMenu" class="addTracker" value="Preview" type="button"><input id="goMenu" name="goMenu" class="addTracker" value="Add" type="button"></div>'),
-			editButtons: $.tmpl('<div class="buttons"><input class="saveTracker" value="Update" type="button"><input class="cancel" value="Cancel" type="button"></div>')
+			configurationButtons: $.tmpl('<div class="buttons"><input id="previewMenu" name="previewMenu" class="addTracker" value="Preview" type="submit"><input id="goMenu" name="goMenu" class="addTracker" value="Add" type="button"></div>'),
+			editButtons: $.tmpl('<div class="buttons"><input class="saveTracker" value="Update" type="submit"><input class="cancel" value="Cancel" type="button"></div>')
 		});
 		
 		$(trackers).each(function() {
@@ -470,7 +470,9 @@ $('.remove').live('click', function(event) {
 	});
 });
 
-$('.saveTracker').live('click', function() {
+$('#board .editor').live('submit', function(event) {
+	event.preventDefault();
+	
 	board.updateWidget($(this).parents('.widget'));
 });
 
@@ -490,7 +492,7 @@ $('.edit').live('click', function(event) {
 	var tracker = allData.tracker;
 	
 	widget.prepend(
-		'<div class="editor">' + tracker.configurationTemplate + '{{include "editButtons"}}</div>', 
+		'<form class="editor">' + tracker.configurationTemplate + '{{include "editButtons"}}</form>', 
 		allData.data);
 		
 	enhanceNumericTextboxes(widget);
@@ -505,13 +507,18 @@ $('#trackers ul li').live('click', function(event) {
 	$(this).addClass('activeTracker');
 	
 	$('#trackers .editor')
-		.html($.render(tracker.configurationTemplate + '{{include "configurationButtons"}}', tracker.defaultData));
+		.html($.render(tracker.configurationTemplate + '{{include "configurationButtons"}}', tracker.defaultData))
+		.submit(function(event) {
+			event.preventDefault();
+			
+			board.displayPreview(tracker);
+		});
 
 	enhanceNumericTextboxes('#trackers');
 	
-	$('#previewMenu').click(function() {
-		board.displayPreview(tracker);
-	});
+	// $('#previewMenu').click(function() {
+	// 	board.displayPreview(tracker);
+	// });
 	
 	$('#goMenu').click(function() {
 		board.createWidget(tracker);

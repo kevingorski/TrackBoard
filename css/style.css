@@ -310,8 +310,8 @@ input[type=number] { width: 5em; }
 
 
 /*		- Editor */
+.editor { display: block; }
 .widget .editor	{ padding: 1em; background: #CCC; }
-
 
 .addTracker, 
 .editor input {
