@@ -495,7 +495,7 @@ $('.edit').live('click', function(event) {
 		'<form class="editor">' + tracker.configurationTemplate + '{{include "editButtons"}}</form>', 
 		allData.data);
 		
-	enhanceNumericTextboxes(widget);
+	enhanceInputs(widget);
 });
 
 $('#trackers ul li').live('click', function(event) {
@@ -508,17 +508,14 @@ $('#trackers ul li').live('click', function(event) {
 	
 	$('#trackers .editor')
 		.html($.render(tracker.configurationTemplate + '{{include "configurationButtons"}}', tracker.defaultData))
+		.unbind('submit')
 		.submit(function(event) {
 			event.preventDefault();
 			
 			board.displayPreview(tracker);
 		});
 
-	enhanceNumericTextboxes('#trackers');
-	
-	// $('#previewMenu').click(function() {
-	// 	board.displayPreview(tracker);
-	// });
+	enhanceInputs('#trackers');
 	
 	$('#goMenu').click(function() {
 		board.createWidget(tracker);
@@ -547,7 +544,7 @@ $('#helpDialog .closeDialog').live('click', function(event) {
 	board.hideHelp();
 });
 
-var enhanceNumericTextboxes = function(context) {
+var enhanceInputs = function(context) {
 	// Modernizr cares if programmatic assignement of value rejects invalid data; I don't
 	if(!(Modernizr.inputtypes.number || $.browser.webkit)) {
 		var numberInputs = $(context).find('.editor input[type=number]');
@@ -557,6 +554,23 @@ var enhanceNumericTextboxes = function(context) {
 			max:numberInputs.attr('max'), 
 			showOn:'always'
 		});
+	}
+	
+	if(!Modernizr.inputtypes.date) {
+		var dateInputs = $(context).find('.editor input[type=date]');
+		var names = dateInputs.map(function() { return $(this).attr('name'); });
+		var values = dateInputs.map(function() { return $(this).val(); });
+		
+		dateInputs.replaceWith(function(i) { 
+			return '<input type="text" class="date" name="' + names[i] + 
+				'" value="' + $.datepicker.formatDate('mm/dd/yy', new Date(values[i])) + '" />'; 
+		});
+		
+		$(context)
+			.find('.editor .date')
+			.datepicker({
+				showAnim: "fadeIn"
+			});
 	}
 };
 

@@ -188,6 +188,30 @@ var trackers = [
 				}
 			};
 		}),
+		
+	new Tracker(
+		"Target Date", 
+		'<div><label>Target Date:</label><input name="targetDate" type="date" value="${targetDate}" /></div>' +
+			'<div><label>Title:</label><input name="title" type="text" value="${title}" /></div>',
+		{ targetDate: $.datepicker.formatDate('mm/dd/yy', new Date()), title:'Important Deadline' },
+		'<h3>${title}</h3><span class="count">${days}</span> days ${description}',
+		function(target, queryData, markComplete) {
+			markComplete();
+			
+			var date = new Date(queryData.targetDate.toString().replace(/-\d{2}:\d{2}/g," ").replace(/[TZ]/g," ")),
+				diff = (((new Date()).getTime() - date.getTime()) / 1000),
+				days = Math.floor(diff / 86400);
+
+			if (isNaN(days))
+				return;
+			
+			queryData.days = Math.abs(days);
+			queryData.description = days > 0 ? " days ago" : " days left";
+			
+			target
+				.append(this.template, queryData)
+				.fadeTo(1,1);
+		}),
 			
 	new YqlTracker(
 		"Weather",
