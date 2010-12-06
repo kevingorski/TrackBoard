@@ -200,6 +200,8 @@ input[type=number] { width: 5em; }
 	float: left;
 	margin: 0 1em 1em 0;
 	width: 400px;
+	border-radius: .25em;
+	-moz-border-radius: .25em;
 }
 
 #board .dropPlaceholder {
