@@ -28,7 +28,7 @@ var board = (function() {
 		{ keys: 'right k p', event:'keydown', description:'Moves widget selection right', action: function() { board.moveWidgetSelection('→'); } },
 		{ keys: 'up', event:'keydown', description:'Moves tracker selection up', action: function(event) { board.moveTrackerSelection('↑', event); } },
 		{ keys: 'down', event:'keydown', description:'Moves tracker selection down', action: function(event) { board.moveTrackerSelection('↓', event); } },
-		{ keys: 'o e', description: 'Opens the widget editor', action: function() { board.openWidgetEditor(); } },
+		{ keys: 'o e', description: 'Opens the widget editor', action: function(event) { board.openWidgetEditor(); event.preventDefault(); } },
 		{ keys: 'backspace del', event:'keydown', description: 'Removes the current widget', action: function() { board.removeActiveWidget(); } }
 	];
 	
@@ -491,11 +491,16 @@ $('.edit').live('click', function(event) {
 	var allData = widget.data();
 	var tracker = allData.tracker;
 	
-	widget.prepend(
-		'<form class="editor">' + tracker.configurationTemplate + '{{include "editButtons"}}</form>', 
-		allData.data);
-		
+	widget
+		.prepend(
+			'<form class="editor">' + tracker.configurationTemplate + '{{include "editButtons"}}</form>', 
+			allData.data);
+	
 	enhanceInputs(widget);
+	
+	widget
+		.find('input:first, select:first')
+		.focus();
 });
 
 $('#trackers ul li').live('click', function(event) {
@@ -577,6 +582,4 @@ var enhanceInputs = function(context) {
 
 //		DOM INITIALIZATION
 
-$(function() {
-	board.load();
-});
+$(board.load);
