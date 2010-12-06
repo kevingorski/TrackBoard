@@ -1,16 +1,36 @@
 var board = (function() {
+	var meta = {
+		version : '0.0.3'
+	};
 	var settings = {
-		version : '0.0.2',
 		drawerOpen : false,
-		refreshRate : 10
+		refreshRate : 10,
+		plusServer : 'trackboardplus.heroku.com'
+		//plusServer : '0.0.0.0:9292'
 	};
 	var state = [];
+	var undoState = [];
+	var canUsePlusServer = false;
 	var loading = false;
 	var pollingHandle;
+	var undoMessageDisplayHandle;
+	var dragStartIndex;
 
 	var boardStateKey = 'boardState';
 	var settingsKey = 'settings';
 	
+	var keyBindings = [
+		{ keys: 'h shift+?', description: 'This menu', action: function() { board.displayHelp(); } },
+		{ keys: 'ctrl+z meta+z', event:'keydown', description: 'Undo', action: function() { board.undo(); } },
+		{ keys: 'space', event:'keydown', description: 'Opens and closes the tracker drawer', action: function(e) { $('#trackerHandle input').click(); e.preventDefault(); } },
+		{ keys: 'esc', event:'keydown', description:'Hides this menu or closes the active widget editor', action: function() { board.escape(); } },
+		{ keys: 'left j n', event:'keydown', description:'Moves widget selection left', action: function() { board.moveWidgetSelection('←'); } },
+		{ keys: 'right k p', event:'keydown', description:'Moves widget selection right', action: function() { board.moveWidgetSelection('→'); } },
+		{ keys: 'up', event:'keydown', description:'Moves tracker selection up', action: function(event) { board.moveTrackerSelection('↑', event); } },
+		{ keys: 'down', event:'keydown', description:'Moves tracker selection down', action: function(event) { board.moveTrackerSelection('↓', event); } },
+		{ keys: 'o e', description: 'Opens the widget editor', action: function(event) { board.openWidgetEditor(); event.preventDefault(); } },
+		{ keys: 'backspace del', event:'keydown', description: 'Removes the current widget', action: function() { board.removeActiveWidget(); } }
+	];
 	
 	var collectConfigurationData = function(widget) {
 		var updatedData = {};
@@ -31,16 +51,24 @@ var board = (function() {
 		return updatedData;
 	};
 
-	var loadWidget = function(tracker, queryData, appendToSelector) {
+	var loadWidget = function(tracker, queryData, appendToSelector, index) {
 		var loadingWidget = true;
 		var widget;
-
+		
 		if(appendToSelector.jquery) {
 			widget = $(appendToSelector);
 		} else {
-			widget = $('<div class="widget"><div class="body">Loading...</div></div>');
+			widget = $('<li class="widget"><div class="body">Loading...</div></li>');
 			
-			widget.appendTo(appendToSelector);
+			if(typeof(index) != 'undefined') {
+				if(index == 0) { 
+					$(appendToSelector).prepend(widget);
+				} else {
+					$(appendToSelector + ' .widget:eq(' + (index - 1) + ')').after(widget);
+				}
+			} else {
+				widget.appendTo(appendToSelector);
+			}
 		}
 
 		var pulse = function() {
@@ -78,22 +106,122 @@ var board = (function() {
 		board.updateSetting('drawerOpen', false);
 	};
 	
+	var addWidgetData = function(data, trackerTitle, index) {
+		// Don't re-save while re-creating widgets from storage
+		if(loading) { return; }
+		
+		var end = state.splice(index);
+		
+		state = state.concat({
+			'queryData': data,
+			'trackerTitle': trackerTitle
+		}, end);
+
+		save();
+	};
+	
+	var updateWidgetData = function(widget, data, trackerTitle) {
+		state[$("#board .widget").index(widget)] = {
+			'queryData': data,
+			'trackerTitle': trackerTitle
+		};
+		
+		save();
+	};
+	
+	var save = function() {
+		if(canUsePlusServer) {
+			$.ajax({
+				type: 'POST',
+				dataType: 'json',
+				url: 'http://' + settings.plusServer + '/board',
+				data: JSON.stringify(state),
+				error: function(request, status, error) {
+					// Retry?
+					console.log(status);
+				}
+			 });
+			
+			return;
+		}
+		
+		if(!Modernizr.localstorage) { return; }
+		
+		// This could throw QUOTA_EXCEEDED_ERR, but deferring
+		localStorage.setItem(boardStateKey, JSON.stringify(state));
+	};
+	
+	var initializeDOM = function() {
+		$.extend($.templates, {
+			toolbarTemplate: $.tmpl('<div class="toolbar"><a href="#" class="remove">X</a><a href="#" class="edit">∆</a></div>'),
+			errorTemplate: $.tmpl('<div class="body">There was an error loading this tracker</div>'),
+			configurationButtons: $.tmpl('<div class="buttons"><input id="previewMenu" name="previewMenu" class="addTracker" value="Preview" type="submit"><input id="goMenu" name="goMenu" class="addTracker" value="Add" type="button"></div>'),
+			editButtons: $.tmpl('<div class="buttons"><input class="saveTracker" value="Update" type="submit"><input class="cancel" value="Cancel" type="button"></div>')
+		});
+		
+		$(trackers).each(function() {
+			$('#trackers ul').append('<li><a href="#">' + this.title + '</a></li>');
+		});
+
+		$('#footerTemplate')
+			.render($.extend(settings, meta))
+			.appendTo('footer');
+		
+		$('#helpTemplate')
+			.render({ shortcuts:keyBindings })
+			.appendTo('#container')
+			.hide();
+			
+		$('header h1 a').click(function(event) {
+			event.preventDefault();
+			
+			board.displayHelp();
+		});
+		
+		$('#board').sortable({
+			placeholder: 'ui-state-highlight dropPlaceholder',
+			forcePlaceholderSize: true,
+			handle: '.body',
+			start: function(event, ui) {
+				dragStartIndex = $("#board .widget").index(ui.item);
+			},
+			update: function(event, ui) {
+				var dragEndIndex = $("#board .widget").index(ui.item);
+				var swap = state[dragStartIndex];
+				
+				state[dragStartIndex] = state[dragEndIndex];
+				state[dragEndIndex] = swap;
+				
+				save();
+			}
+		});
+
+		$(keyBindings).each(function(){
+			$(document).bind(this.event || 'keypress', this.keys, this.action);
+		});
+	};
+	
+	var buildThatBoard = function() {
+		$(state).each(function() {
+			var item = this,
+				tracker = $.grep(trackers, function(t) { return t.title == item.trackerTitle; })[0];
+
+			if(tracker) {
+				board.createWidget(tracker, item.queryData);
+			}
+		});
+		
+		loading = false;
+	};
 	
 	return {
 		load : function () {
-			
+
 			loading = true;
-
-			$.extend($.templates, {
-				toolbarTemplate: $.tmpl('<div class="toolbar"><a href="#" class="remove">X</a><a href="#" class="edit">∆</a></div>'),
-				errorTemplate: $.tmpl('<div class="body">There was an error loading this tracker</div>'),
-				configurationButtons: $.tmpl('<div class="buttons"><input id="previewMenu" name="previewMenu" class="addTracker" value="Preview" type="button"><input id="goMenu" name="goMenu" class="addTracker" value="Add" type="button"></div>'),
-				editButtons: $.tmpl('<div class="buttons"><input class="saveTracker" value="Update" type="button"><input class="cancel" value="Cancel" type="button"></div>')
-			});
-
-			$('#footerTemplate')
-				.render(settings)
-				.appendTo('footer');
+			
+			initializeDOM();
+			
+			canUsePlusServer = settings.plusServer && settings.plusServer == window.location.host;
 			
 			if(!readCookie('lastVisited')) {
 				this.displayIntroduction();
@@ -102,27 +230,31 @@ var board = (function() {
 			createCookie('lastVisited', new Date(), 365);
 			
 			if(Modernizr.localstorage) {
-				// Load and apply widgets
-				var json = localStorage.getItem(boardStateKey);
-
-				if(json) {
-					state = $.parseJSON(json);
-
-					$(state).each(function() {
-						var item = this,
-							tracker = $.grep(trackers, function(t) { return t.title == item.trackerTitle; })[0];
-
-						if(tracker) {
-							board.createWidget(tracker, item.queryData);
-						}
-					});
-				}
-
 				json = localStorage.getItem(settingsKey);
 
 				if(json) {
-					settings = $.parseJSON(json);				
+					// Merge new defaults into stored settings
+					settings = $.extend(settings, $.parseJSON(json));
 				}
+			
+				if(!canUsePlusServer) {
+					// Load and apply widgets
+					var json = localStorage.getItem(boardStateKey);
+
+					if(json) {
+						buildThatBoard(state = $.parseJSON(json));
+					} else {
+						loading = false;
+					}
+				}
+			}
+			
+			if(canUsePlusServer) {
+				$.getJSON('http://' + settings.plusServer + '/board', function(data) {
+					state = data;
+					
+					buildThatBoard();
+				});
 			}
 			
 			var handle = $('#trackerHandle input');
@@ -136,20 +268,34 @@ var board = (function() {
 			}
 			
 			pollingHandle = setInterval(this.updateWidgets, settings.refreshRate * 1000);
+		},
+		
+		removeWidgetData : function(widget) {
+			var index = $('#board .widget').index(widget);
+			var originalState = state.splice(index, 1)[0];
+						
+			save();
 			
-			loading = false;
+			undoState.push({ action:"remove", index: index, widgetState: originalState });
+			
+			$('#undoMessage').fadeIn();
+			
+			board.removeUndoMessage();
 		},
 
-		createWidget : function(tracker, queryData) {
+		createWidget : function(tracker, queryData, index) {
 			queryData = queryData || collectConfigurationData();
 			
-			loadWidget(tracker, queryData, '#board')
+			var widget = loadWidget(tracker, queryData, '#board', index);
+			
+			widget
 				.data({
 					'tracker': tracker, 
 					'data': queryData })
-				.prepend('toolbarTemplate', {});
-
-			board.save();
+				.prepend('toolbarTemplate', {})
+				.attr("draggable", "true");
+			
+			addWidgetData(queryData, tracker.title, index);
 		},
 		
 		updateWidgets : function() {
@@ -163,12 +309,13 @@ var board = (function() {
 		
 		updateWidget : function(widget) {
 			var queryData = collectConfigurationData(widget);
+			var tracker = widget.data().tracker;
 			
-			loadWidget(widget.data().tracker, queryData, widget);
+			loadWidget(tracker, queryData, widget);
 
 			widget.data('data', queryData);
 			
-			board.save();
+			updateWidgetData(widget, queryData, tracker.title);
 		},
 		
 		displayPreview : function(tracker, queryData) {
@@ -177,24 +324,6 @@ var board = (function() {
 			$(selector).empty();
 
 			loadWidget(tracker, queryData || collectConfigurationData(), selector);
-		},
-		
-		save : function() {
-			if(!Modernizr.localstorage || loading) { return; }
-			
-			state = [];
-			
-			$('#board .widget:not(.introduction)').each(function() {
-				var data = $(this).data();
-				
-				state.push({
-					'queryData': data.data,
-					'trackerTitle': data.tracker.title
-				});
-			});
-			
-			// This could throw QUOTA_EXCEEDED_ERR, but deferring
-			localStorage.setItem(boardStateKey, JSON.stringify(state));
 		},
 		
 		updateSetting : function(settingName, newValue) {
@@ -208,12 +337,113 @@ var board = (function() {
 		
 		displayIntroduction : function() {
 			$('#introductionTemplate')
-				.render(settings)
+				.render($.extend(settings, meta))
 				.appendTo('#board');
 		},
 		
 		stopUpdating : function() {
 			clearInterval(pollingHandle);
+		},
+		
+		undo : function() {
+			if(undoState.length == 0) return;
+			
+			var action = undoState.pop();
+			
+			switch(action.action) {
+				case "remove":
+					var item = action.widgetState;
+					var tracker = $.grep(trackers, function(t) { return t.title == item.trackerTitle; })[0];
+
+					board.createWidget(tracker, item.queryData, action.index);
+				break;
+			}
+			
+			if(undoState.length == 0) {
+				$('#undoMessage').fadeOut();
+			}
+		},
+		
+		removeUndoMessage : function() {
+			undoMessageDisplayHandle = setTimeout(function() {
+				$('#undoMessage').fadeOut();
+			}, 5000);
+		},
+		
+		keepUndoMessage : function() {
+			clearTimeout(undoMessageDisplayHandle);
+		},
+		
+		displayHelp : function() {
+			$('#helpDialog').toggle();
+		},
+		
+		hideHelp : function() {
+			$('#helpDialog').hide();
+		},
+		
+		escape : function() {
+			if($('#helpDialog:visible').length) {
+				board.hideHelp();
+				
+				return;
+			}
+			
+			$('.activeWidget .cancel').click();
+		},
+		
+		moveWidgetSelection : function(direction) {
+			var activeWidget = $('.activeWidget');
+			var targetWidget;
+			
+			switch(direction) {
+				case '←':
+					targetWidget = activeWidget.length
+						? activeWidget.prev()
+						: $('#board .widget').last();
+					break;
+				case '→':
+					targetWidget = activeWidget.length
+						? activeWidget.next()
+						: $('#board .widget').first();
+					break;
+			}
+			
+			activeWidget.removeClass('activeWidget');
+			targetWidget.addClass('activeWidget');
+		},
+		
+		moveTrackerSelection : function(direction, event) {
+			if($('#trackerDrawer').height() == 0) return;
+			
+			event.preventDefault();
+			
+			var activeTracker = $('.activeTracker');
+			
+			switch(direction) {
+				case '↑':
+					targetTracker = activeTracker.length
+						? activeTracker.prev()
+						: $('#trackers li').last();
+					break;
+				case '↓':
+					targetTracker = activeTracker.length
+						? activeTracker.next()
+						: $('#trackers li').first();
+					break;
+			}
+			
+			targetTracker
+				.click()
+				.find('a')[0].focus();
+		},
+		
+		openWidgetEditor : function() {
+			$('.activeWidget .edit').click();
+		},
+		
+		removeActiveWidget : function() {
+			$('.activeWidget .remove').click();
 		}
 	};
 }());
@@ -221,19 +451,28 @@ var board = (function() {
 
 //		EVENT HANDLERS
 
-$('.remove').live('click', function(event) {
-	event.preventDefault();
+$('#board .widget').live('click', function(event) {
+	if($(this).is('.activeWidget')) return;
 	
-	$(this)
-		.parents('.widget')
-		.fadeOut(function() { 
-			$(this).remove();
-		
-			board.save();
-		});
+	$('#board .activeWidget').removeClass('activeWidget');
+
+	$(this).addClass('activeWidget');
 });
 
-$('.saveTracker').live('click', function() {
+$('.remove').live('click', function(event) {
+	event.preventDefault();
+	var widget = $(this).parents('.widget');
+	
+	board.removeWidgetData(widget);
+	
+	widget.fadeOut(function() { 			
+		$(this).remove();
+	});
+});
+
+$('#board .editor').live('submit', function(event) {
+	event.preventDefault();
+	
 	board.updateWidget($(this).parents('.widget'));
 });
 
@@ -252,11 +491,16 @@ $('.edit').live('click', function(event) {
 	var allData = widget.data();
 	var tracker = allData.tracker;
 	
-	widget.prepend(
-		'<div class="editor">' + tracker.configurationTemplate + '{{include "editButtons"}}</div>', 
-		allData.data);
-		
-	enhanceNumericTextboxes(widget);
+	widget
+		.prepend(
+			'<form class="editor">' + tracker.configurationTemplate + '{{include "editButtons"}}</form>', 
+			allData.data);
+	
+	enhanceInputs(widget);
+	
+	widget
+		.find('input:first, select:first')
+		.focus();
 });
 
 $('#trackers ul li').live('click', function(event) {
@@ -264,14 +508,19 @@ $('#trackers ul li').live('click', function(event) {
 	
 	var tracker = trackers[$('#trackers ul li').index(this)];
 	
-	$('#trackers .editor')
-		.html($.render(tracker.configurationTemplate + '{{include "configurationButtons"}}', tracker.defaultData));
-
-	enhanceNumericTextboxes('#trackers');
+	$('#trackers .activeTracker').removeClass('activeTracker');
+	$(this).addClass('activeTracker');
 	
-	$('#previewMenu').click(function() {
-		board.displayPreview(tracker);
-	});
+	$('#trackers .editor')
+		.html($.render(tracker.configurationTemplate + '{{include "configurationButtons"}}', tracker.defaultData))
+		.unbind('submit')
+		.submit(function(event) {
+			event.preventDefault();
+			
+			board.displayPreview(tracker);
+		});
+
+	enhanceInputs('#trackers');
 	
 	$('#goMenu').click(function() {
 		board.createWidget(tracker);
@@ -280,8 +529,27 @@ $('#trackers ul li').live('click', function(event) {
 	board.displayPreview(tracker, tracker.defaultData);
 });
 
+$('#undoMessage a').live('click', function(event) {
+	event.preventDefault();
+	
+	board.undo();
+});
 
-var enhanceNumericTextboxes = function(context) {
+$('#undoMessage').live('mouseenter', function() {
+	board.keepUndoMessage();
+});
+
+$('#undoMessage').live('mouseleave', function() {
+	board.removeUndoMessage();
+});
+
+$('#helpDialog .closeDialog').live('click', function(event) {
+	event.preventDefault();
+	
+	board.hideHelp();
+});
+
+var enhanceInputs = function(context) {
 	// Modernizr cares if programmatic assignement of value rejects invalid data; I don't
 	if(!(Modernizr.inputtypes.number || $.browser.webkit)) {
 		var numberInputs = $(context).find('.editor input[type=number]');
@@ -292,15 +560,26 @@ var enhanceNumericTextboxes = function(context) {
 			showOn:'always'
 		});
 	}
+	
+	if(!Modernizr.inputtypes.date) {
+		var dateInputs = $(context).find('.editor input[type=date]');
+		var names = dateInputs.map(function() { return $(this).attr('name'); });
+		var values = dateInputs.map(function() { return $(this).val(); });
+		
+		dateInputs.replaceWith(function(i) { 
+			return '<input type="text" class="date" name="' + names[i] + 
+				'" value="' + $.datepicker.formatDate('mm/dd/yy', new Date(values[i])) + '" />'; 
+		});
+		
+		$(context)
+			.find('.editor .date')
+			.datepicker({
+				showAnim: "fadeIn"
+			});
+	}
 };
 
 
 //		DOM INITIALIZATION
 
-$(function() {
-	$(trackers).each(function() {
-		$('#trackers ul').append('<li><a href="#">' + this.title + '</a></li>');
-	});
-				
-	board.load();
-});
+$(board.load);

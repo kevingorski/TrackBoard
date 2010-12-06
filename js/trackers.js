@@ -61,7 +61,7 @@ var trackers = [
 		'<div><label>Title:</label><input name="title" type="text" value="${title}" /></div>' +
 			'<div><label>RSS:</label><input name="rssUrl" value="${rssUrl}" type="url" /></div>' +
 			'<div><label>Limit:</label><input name="limit" type="number" value="${limit}" min="1" max="50" /></div>',
-		{ title: "Yahoo Top Stories", rssUrl: "rss.news.yahoo.com/rss/topstories", limit: 3 },
+		{ title: "Yahoo Top Stories", rssUrl: "http://rss.news.yahoo.com/rss/topstories", limit: 3 },
 		function(data) { return 'select * from rss(0,' + data.limit + ') where url="' + data.rssUrl + '"'; },
 		'<h3>${title}</h3><ol>{{each item}}<li><a href="${link}">${title}</a></li>{{/each}}</ol>'),
 
@@ -187,6 +187,30 @@ var trackers = [
 						.fadeTo(1, 1);
 				}
 			};
+		}),
+		
+	new Tracker(
+		"Target Date", 
+		'<div><label>Target Date:</label><input name="targetDate" type="date" value="${targetDate}" /></div>' +
+			'<div><label>Title:</label><input name="title" type="text" value="${title}" /></div>',
+		{ targetDate: $.datepicker.formatDate('mm/dd/yy', new Date()), title:'Important Deadline' },
+		'<h3>${title}</h3><span class="count">${days}</span> days ${description}',
+		function(target, queryData, markComplete) {
+			markComplete();
+			
+			var date = new Date(queryData.targetDate.toString().replace(/-\d{2}:\d{2}/g," ").replace(/[TZ]/g," ")),
+				diff = (((new Date()).getTime() - date.getTime()) / 1000),
+				days = Math.floor(diff / 86400);
+
+			if (isNaN(days))
+				return;
+			
+			queryData.days = Math.abs(days);
+			queryData.description = days > 0 ? " days ago" : " days left";
+			
+			target
+				.append(this.template, queryData)
+				.fadeTo(1,1);
 		}),
 			
 	new YqlTracker(
