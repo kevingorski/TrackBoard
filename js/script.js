@@ -224,7 +224,7 @@ var board = (function() {
 			canUsePlusServer = settings.plusServer && settings.plusServer == window.location.host;
 			
 			if(!readCookie('lastVisited')) {
-				this.displayIntroduction();
+				board.displayIntroduction();
 			}
 			
 			createCookie('lastVisited', new Date(), 365);
